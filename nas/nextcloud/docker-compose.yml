@@ -1,0 +1,49 @@
+version: '2'
+
+services:
+  db:
+    container_name: nextcloud-db
+    image: postgres:alpine
+    restart: always
+    volumes:
+      - "$(NEXTCLOUD_HOST_DIR}/postgresql/data:/var/lib/postgresql/data"
+    environment: 
+      - "POSTGRES_PASSWORD=${DB_PASSWORD}"
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+
+  redis:
+    container_name: nextcloud-redis
+    image: redis:alpine
+    restart: always
+
+  app:
+    container_name: nextcloud-app
+    image: nextcloud:fpm-alpine
+    restart: always
+    volumes:
+      - "$(NEXTCLOUD_HOST_DIR}/nextcloud:/var/www/html"
+      - "$(NEXTCLOUD_HOST_DIR}/apps:/var/www/html/custom_apps"
+      - "$(NEXTCLOUD_HOST_DIR}/config:/var/www/html/config"
+      - "$(NEXTCLOUD_HOST_DIR}/data:/var/www/html/data"
+      - "${SHARED_DIR}:/mnt/Shared"
+    environment: 
+      - "POSTGRES_PASSWORD=${DB_PASSWORD}"
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_HOST=db
+      - REDIS_HOST=redis
+    depends_on:
+      - db
+      - redis
+
+  web:
+    container_name: nextcloud-web
+    build: ./web
+    restart: always
+    ports:
+      - "${EXPOSED_PORT}:80"
+    volumes:
+      - "$(NEXTCLOUD_HOST_DIR}/nextcloud:/var/www/html:ro"
+    depends_on:
+      - app

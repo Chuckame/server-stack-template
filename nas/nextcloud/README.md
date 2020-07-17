@@ -1,0 +1,5 @@
+Must have those env vars:
+DB_PASSWORD
+NEXTCLOUD_HOST_DIR
+SHARED_DIR
+EXPOSED_PORT
